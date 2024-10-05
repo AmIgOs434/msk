@@ -7,121 +7,91 @@ const User = sequelize.define('User', {
     name: {type: DataTypes.STRING,defaultValue:'User'},
     phone: {type: DataTypes.STRING},
     email: {type: DataTypes.STRING},
-    status: {type: DataTypes.INTEGER,defaultValue:0},
-    image: {type: DataTypes.STRING,defaultValue:'acc.png'},
+    image: {type: DataTypes.STRING},
+    birthday: {type: DataTypes.STRING},
+    Role: {type: DataTypes.STRING},
+
+    type_dost: {type: DataTypes.STRING},
+    adress: {type: DataTypes.STRING},
+    time: {type: DataTypes.STRING},
+    all_price: {type: DataTypes.STRING},
 })
 
 
-const Sessia = sequelize.define('Sessia', {
-    id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-    name: {type: DataTypes.STRING},
-    kto: {type: DataTypes.STRING},
-    professia_name: {type: DataTypes.STRING},
-    osebe: {type: DataTypes.STRING},
-    opit: {type: DataTypes.STRING},
-    zarplata: {type: DataTypes.STRING},
-    image: {type: DataTypes.STRING,defaultValue:'acc.png'},
-    tags: {type: DataTypes.TEXT},
-
-})
-const SessiaTags = sequelize.define('SessiaTags', {
+const Categoria = sequelize.define('Categoria', {
     id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     name: {type: DataTypes.STRING},
 })
-const Portfolio = sequelize.define('Portfolio', {
+
+const Basket_Item = sequelize.define('Basket_Item', {
+    id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    opisaniye: {type: DataTypes.STRING},
+    number: {type: DataTypes.STRING},
+    img: {type: DataTypes.STRING},
+    price: {type: DataTypes.STRING},
+    all_price: {type: DataTypes.STRING},
+    name: {type: DataTypes.STRING},
+    comment: {type: DataTypes.STRING},
+    ItemsId:{type: DataTypes.INTEGER}
+})
+const Order_item = sequelize.define('Order_item', {
+    id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    opisaniye: {type: DataTypes.STRING},
+    number: {type: DataTypes.INTEGER},
+    img: {type: DataTypes.STRING},
+    price: {type: DataTypes.INTEGER},
+    all_price: {type: DataTypes.STRING},
+    name: {type: DataTypes.STRING},
+    comment: {type: DataTypes.STRING},
+})
+const Item = sequelize.define('Item', {
     id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     name: {type: DataTypes.STRING},
-    opisaniye_kratko: {type: DataTypes.STRING},
-    opisaniye_full: {type: DataTypes.STRING},
-})
-
-const Portfolios_img = sequelize.define('Portfolios_img', {
-    id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    opisaniye: {type: DataTypes.STRING},
+    kkal: {type: DataTypes.STRING},
+    belki: {type: DataTypes.STRING},
+    ziri: {type: DataTypes.STRING},
+    uglevodi: {type: DataTypes.STRING},
+    ves: {type: DataTypes.STRING},
+    price: {type: DataTypes.STRING},
     img: {type: DataTypes.STRING},
 })
-// const Profile = sequelize.define('Profile', {
-//     id: {type: DataTypes.INTEGER, primaryKey: true},
-//     user_id: {type: DataTypes.STRING},
-//     name: {type: DataTypes.STRING},
-//     image: {type: DataTypes.STRING},
-//     bio: {type: DataTypes.STRING},
-// })
+const Order = sequelize.define('Order', {
+    id:  {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    name: {type: DataTypes.STRING},
+    price: {type: DataTypes.STRING},
+    date: {type: DataTypes.STRING},
+    status: {type: DataTypes.STRING},
+    all_price: {type: DataTypes.STRING},
+    comment: {type: DataTypes.STRING},
 
+    
+    type_dost: {type: DataTypes.STRING},
+    adress: {type: DataTypes.STRING},
+    time: {type: DataTypes.STRING},
 
-// const RandomUsers = sequelize.define('RandomUsers', {
-//     id: {type: DataTypes.INTEGER, primaryKey: true},
-//     name: {type: DataTypes.STRING},
-//     image: {type: DataTypes.STRING},
-// })
-
-// const CropperDimensions = sequelize.define('CropperDimensions', {
-//     height:  {type: DataTypes.STRING,defaultValue:null},
-//     width:  {type: DataTypes.STRING,defaultValue:null} ,
-//     left:  {type: DataTypes.STRING,defaultValue:null},
-//     top:  {type: DataTypes.STRING,defaultValue:null} 
-// })
-
-// const Like = sequelize.define('Like', {
-//     id: {type: DataTypes.INTEGER, primaryKey: true},
-//     user_id: {type: DataTypes.STRING},
-//     post_id: {type: DataTypes.STRING},
-// })
-
-const Video = sequelize.define('video', {
-    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-    videoURL: {type: DataTypes.STRING},
-    author: {type: DataTypes.STRING},
-    authorLink: {type: DataTypes.STRING},
-    prosmotri: {type: DataTypes.INTEGER},
-    name: {type: DataTypes.TEXT},
-    tags: {type: DataTypes.TEXT},
-    sessiaImg: {type: DataTypes.TEXT},
-    dostup: {type: DataTypes.INTEGER,defaultValue:0},
-    tema: {type: DataTypes.INTEGER},
 })
 
 
 
-// const Post = sequelize.define('Post', {
-//     id: {type: DataTypes.INTEGER, primaryKey: true},
-//     user_id: {type: DataTypes.STRING},
-//     video_url: {type: DataTypes.STRING},
-//     text: {type: DataTypes.STRING},
-//     created_at:{type: DataTypes.STRING},
-// })
 
+User.hasMany(Order, {as: 'Order'});
+Order.belongsTo(User)
 
+User.hasMany(Basket_Item, {as: 'Basket_Item'});
+Basket_Item.belongsTo(User)
 
-// const PostWithProfile = sequelize.define('PostWithProfile', {
-//     id: {type: DataTypes.INTEGER, primaryKey: true},
-//     user_id: {type: DataTypes.STRING},
-//     video_url: {type: DataTypes.STRING},
-//     text: {type: DataTypes.STRING},
-//     created_at: {type: DataTypes.STRING},
+Order.hasMany(Order_item, {as: 'Order_item'});
+Order_item.belongsTo(Order)
 
-// })
-
-
-Sessia.hasMany(SessiaTags, {as: 'sessiaTags'});
-SessiaTags.belongsTo(Sessia)
-
-Sessia.hasMany(Video, {as: 'Video'});
-Video.belongsTo(Sessia)
-
-User.hasMany(Sessia, {as: 'Sessia'});
-Sessia.belongsTo(User)
-
-Portfolio.hasMany(Portfolios_img, {as: 'Portfolios_img'});
-Portfolios_img.belongsTo(Portfolio)
-
-Sessia.hasMany(Portfolio, {as: 'Portfolio'});
-Portfolio.belongsTo(Sessia)
+Categoria.hasMany(Item, {as: 'Item'});
+Item.belongsTo(Categoria)
 
 module.exports = {
-    User,
-    Sessia,
-    SessiaTags,
-    Video,
-    Portfolio,
-    Portfolios_img
+User,
+Order,
+Basket_Item,
+Order_item,
+Categoria,
+Item,
 }
