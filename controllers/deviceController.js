@@ -60,18 +60,26 @@ async sms_veryf(req, res, next) {
       return res.status(500).json({ message: 'Internal server error' });
   }
 
-
 }
 async log_regq(req, res, next) {
 
-      const {phone} = req.body
-      const user_0 = await User.findOrCreate({
-      where: { phone: phone }
-      })
-      const id = user_0[0].dataValues.id
-      const token = generateJwt(user_0.id)
-      console.log(user_0[0].dataValues.id)
-      return res.json(id)
+
+
+
+      try {
+        const {phone} = req.body
+        const user_0 = await User.findOrCreate({
+        where: { phone: phone }
+        })
+        const id = user_0[0].dataValues.id
+        const token = generateJwt(user_0.id)
+        console.log(user_0[0].dataValues.id)
+        return res.json(id)
+      } catch (error) {
+          console.error(error); // Логируем ошибку
+          return res.status(500).json({ message: 'Internal server error' });
+      }
+    
   }
   async log_reg(req, res, next) {
     try {
@@ -120,25 +128,33 @@ categoriaId
 
   async log_reg_Role(req, res, next) {
 
-    const {phone,role,photo} = req.body
-    const user_0 = await User.findOrCreate({
-    where: { phone: phone }
-    })
-    const id = user_0[0].dataValues.id
-    
-    const basket =  await User.update(
-      { 
-        Role:'staff',
-        time: role,
-        photo: photo,
-        type_dost: 1,
-          
-      },
-      {
-          where: {id:id} 
-      }
+
+
+    try {
+      const {phone,role,photo} = req.body
+      const user_0 = await User.findOrCreate({
+      where: { phone: phone }
+      })
+      const id = user_0[0].dataValues.id
       
-      )
+      const basket =  await User.update(
+        { 
+          Role:'staff',
+          time: role,
+          photo: photo,
+          type_dost: 1,
+            
+        },
+        {
+            where: {id:id} 
+        }
+        
+        )
+    } catch (error) {
+        console.error(error); // Логируем ошибку
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+
     
       if (basket) {
           return res.status(206).send('Basket updated successfully ');
@@ -390,15 +406,22 @@ async getCategoria(req, res, next) {
 }
 
 async getItems(req, res, next) {
-  const {id} = req.body
-  const device = await Item.findAll({
-    where:{ CategoriumId:id},
-    order: [
-      // Will escape title and validate DESC against a list of valid direction parameters
-      ['id', 'ASC'],
-    ]
-  });
-  return res.json(device)
+
+  try {
+    const {id} = req.body
+    const device = await Item.findAll({
+      where:{ CategoriumId:id},
+      order: [
+        // Will escape title and validate DESC against a list of valid direction parameters
+        ['id', 'ASC'],
+      ]
+    });
+    return res.json(device)
+  } catch (error) {
+      console.error(error); // Логируем ошибку
+      return res.status(500).json({ message: 'Internal server error' });
+  }
+
 } catch (e) {
   next(ApiError.badRequest(e.message))
 
