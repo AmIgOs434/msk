@@ -474,25 +474,39 @@ async getOrder(req, res, next) {
 }
 async getOrderAdmin(req, res, next) {
   try {
-      const device = await Order.findAll({
-        include: [{model: Order_item, as: 'Order_item'}],
+      // Получаем номер страницы из запроса, по умолчанию 0
+      const page = parseInt(req.body.page) || 0; 
+      const limit = 5; // Количество записей на страницу
+      const offset = page * limit; // Расчет смещения
 
+      const orders = await Order.findAll({
+        include: [{ model: Order_item, as: 'Order_item' }],
+        order: [['createdAt', 'DESC']], // Сортируем по дате создания в порядке убывания
+        limit: limit, // Ограничиваем результаты 5 записями
+        offset: offset // Устанавливаем смещение
       });
-      return res.json(device)
+      
+      return res.json(orders);
   } catch (e) {
-      next(ApiError.badRequest(e.message))
+      next(ApiError.badRequest(e.message));
   }
 }
  
 async get_five_Item(req, res, next) {
   try {
-  
-      const device = await Item.findAll({ order: Sequelize.literal('random()'), limit: 5 }).then((encounters) => {
-        return res.json(encounters)
+      const devices = await Item.findAll({
+          where: {
+              status: {
+                  [Sequelize.Op.ne]: 2 // Исключаем элементы, у которых status == 2
+              }
+          },
+          order: Sequelize.literal('random()'), // Сортируем случайным образом
+          limit: 5 // Ограничиваем результат 5 элементами
       });
-    
+
+      return res.json(devices); // Возвращаем найденные элементы
   } catch (e) {
-      next(ApiError.badRequest(e.message))
+      next(ApiError.badRequest(e.message)); // Обработка ошибок
   }
 }
 
@@ -660,6 +674,71 @@ async updateSmena (req, res) {
   } catch (error) {
     return res.status(500).send(error.message);
 }
+
+async otmenaOrder (req, res) {
+  const {id} =  req.body
+ 
+  
+  const basket =  await Order.update(
+  {
+    status: 'Заказ отменен',
+  },
+  {
+      where: {id:id} 
+  }
+  
+  )
+
+  if (basket) {
+      return res.status(206).send('Basket updated successfully ');
+    }throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+}
+
+async updateStatus (req, res) {
+  const {id} =  req.body
+ 
+  
+  const basket =  await Order.update(
+  {
+    status: 'Заказ готов к выдаче',
+  },
+  {
+      where: {id:id} 
+  }
+  
+  )
+
+  if (basket) {
+      return res.status(206).send('Basket updated successfully ');
+    }throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+}
+
+
+async updateUserRole (req, res) {
+  const {id} =  req.body
+ 
+  
+  const basket =  await User.update(
+  {
+    Role: 'admin',
+  },
+  {
+      where: {id:id} 
+  }
+  
+  )
+
+  if (basket) {
+      return res.status(206).send('Basket updated successfully ');
+    }throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+}
+
 async updateUser (req, res) {
   const {id,name,phone,birthday,email} =  req.body
  

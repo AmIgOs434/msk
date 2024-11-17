@@ -42,6 +42,11 @@ router.post('/updateOneBasketItemMinus', deviceController.updateOneBasketItemMin
 router.post('/getOrderAdmin', deviceController.getOrderAdmin)
 
 router.post('/getPrice', deviceController.getPrice)
+router.post('/updateUserRole', deviceController.updateUserRole)
+
+router.post('/updateStatus', deviceController.updateStatus)
+router.post('/otmenaOrder', deviceController.otmenaOrder)
+
 
 
 router.post('/getItems', deviceController.getItems)
