@@ -22,3 +22,16 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+
+module.exports = new Sequelize(
+  'default_db', // Database name
+  'cloud_user', // Username
+  'ffsuR2M4p1!!', // Password
+  {
+    dialect: 'postgres',
+    host: 'ribuswiku.beget.app',
+    port: 5432, // Port
+  }
+);

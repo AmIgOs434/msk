@@ -13,7 +13,29 @@ const generateJwt = (id) => {
       {expiresIn: "24h"}
   )
 }
+const nodemailer = require('nodemailer');
+let transporter = nodemailer.createTransport({
+     
+  host: 'smtp.mail.ru',
+  port:465,
+  secure : true,
+  auth: {
+      user: 'nso-sms@mail.ru',
+      pass: 'qgEwTnVAGA1bi0WFYhj3'
+  }
+});
 
+
+
+const sendSMS = async(mail,sms) => {
+  await transporter.sendMail({
+    from: 'nso-sms@mail.ru',
+    to: mail,
+    subject : "МСК-lounge подтвердите вашу почту",
+    html: `<div>Ваш пароль : ${sms}</div> `,
+
+  })
+}
 
 
 class deviceController {
@@ -27,19 +49,104 @@ class deviceController {
 //     return res.json({token})
 // }
 
-async log_reg(req, res, next) {
+
+async sms_veryf(req, res, next) {
+  try {
+    const {mail,sms} = req.body
+    const sms1 = await sendSMS(mail,sms)
+     return res.json(sms1)
+  } catch (error) {
+      console.error(error); // Логируем ошибку
+      return res.status(500).json({ message: 'Internal server error' });
+  }
+
+
+}
+async log_regq(req, res, next) {
 
       const {phone} = req.body
       const user_0 = await User.findOrCreate({
       where: { phone: phone }
-
       })
-
+      const id = user_0[0].dataValues.id
       const token = generateJwt(user_0.id)
-      return res.json({token})
+      console.log(user_0[0].dataValues.id)
+      return res.json(id)
   }
+  async log_reg(req, res, next) {
+    try {
+        const  {phone} = req.body
 
-// async login(req, res, next) {
+        // Находим или создаем пользователя
+        const [user, created] = await User.findOrCreate({
+            where: { phone: phone }
+        });
+
+        // Получаем id пользователя
+        const id = user.dataValues.id;
+        // Генерируем токен
+        const token = generateJwt(id); // Используем id для генерации токена
+        console.log(id); // Логируем id пользователя
+        // Возвращаем id и токен
+        return res.json(id);
+        
+    } catch (error) {
+        console.error(error); // Логируем ошибку
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+async addTovar(req, res, next) {
+  try {
+      let {
+name,
+opisaniye,
+price,
+photo,
+categoriaId
+       } = req.body
+      const device = await Item.create({
+        name:name,
+        opisaniye:opisaniye,
+        price:price,
+        img:photo,
+        CategoriumId:categoriaId
+      })
+      return res.json(device)
+  } catch (e) {
+      next(ApiError.badRequest(e.message))
+  }
+}
+
+  async log_reg_Role(req, res, next) {
+
+    const {phone,role,photo} = req.body
+    const user_0 = await User.findOrCreate({
+    where: { phone: phone }
+    })
+    const id = user_0[0].dataValues.id
+    
+    const basket =  await User.update(
+      { 
+        Role:'staff',
+        time: role,
+        photo: photo,
+        type_dost: 1,
+          
+      },
+      {
+          where: {id:id} 
+      }
+      
+      )
+    
+      if (basket) {
+          return res.status(206).send('Basket updated successfully ');
+        }throw new Error('Product not found');
+      } catch (error) {
+        return res.status(500).send(error.message);
+    }
+// async login(req, res, next) { 
 //   const {email} = req.body
 //   const user = await User.findOne({where: {email:email}})
 
@@ -135,6 +242,22 @@ async createBasketItem(req, res, next) {
         comment,
         UserId,
         ItemsId
+      });
+      return res.json(device)
+  } catch (e) {
+      next(ApiError.badRequest(e.message))
+  }
+}
+
+
+
+async createCategoria(req, res, next) {
+  try {
+      let {
+name
+       } = req.body
+      const device = await Categoria.create({
+        name
       });
       return res.json(device)
   } catch (e) {
@@ -265,6 +388,54 @@ async getCategoria(req, res, next) {
       next(ApiError.badRequest(e.message))
   }
 }
+
+async getItems(req, res, next) {
+  const {id} = req.body
+  const device = await Item.findAll({
+    where:{ CategoriumId:id},
+    order: [
+      // Will escape title and validate DESC against a list of valid direction parameters
+      ['id', 'ASC'],
+    ]
+  });
+  return res.json(device)
+} catch (e) {
+  next(ApiError.badRequest(e.message))
+
+}
+async getCategoriaAll(req, res, next) {
+  try {
+      const device = await Categoria.findAll({
+      
+
+        order: [
+          // Will escape title and validate DESC against a list of valid direction parameters
+          ['id', 'ASC'],
+
+        ]
+      });
+      return res.json(device)
+  } catch (e) {
+      next(ApiError.badRequest(e.message))
+  }
+}
+
+async getPrice(req, res, next) {
+  try {
+     const {id} = req.body
+      const device = await Basket_Item.findAll({
+        where:{ UserId:id},
+      });
+      let price = 0
+      if (device[0]?.dataValues){
+        device.map(i=>price = price + i.dataValues.price*i.dataValues.number)
+        console.log(price)
+      }
+      return res.json(price)
+  } catch (e) {
+      next(ApiError.badRequest(e.message))
+  }
+}
 async getOrder(req, res, next) {
   try {
      const {id} = req.body
@@ -278,7 +449,17 @@ async getOrder(req, res, next) {
       next(ApiError.badRequest(e.message))
   }
 }
+async getOrderAdmin(req, res, next) {
+  try {
+      const device = await Order.findAll({
+        include: [{model: Order_item, as: 'Order_item'}],
 
+      });
+      return res.json(device)
+  } catch (e) {
+      next(ApiError.badRequest(e.message))
+  }
+}
  
 async get_five_Item(req, res, next) {
   try {
@@ -323,6 +504,22 @@ async getAllItemByUserId(req, res, next) {
       next(ApiError.badRequest(e.message))
   }
 }
+
+
+async getStaff(req, res, next) {
+  try {
+      const device = await User.findAll({
+
+        where: {
+          Role:'staff',
+        }
+
+      });
+      return res.json(device)
+  } catch (e) {
+      next(ApiError.badRequest(e.message))
+  }
+}
 async updateOneBasketItemPlus (req, res) {
   const {id} =  req.body
   const basket1 = await Basket_Item.findOne(
@@ -349,7 +546,97 @@ async updateOneBasketItemPlus (req, res) {
   } catch (error) {
     return res.status(500).send(error.message);
 }
+async putChangeInfo(req, res) {
+  try {
+    const { itemId, kateg, info } = req.body;
 
+    // Проверка на наличие itemId
+    if (!itemId) {
+      return res.status(400).send('Item ID is required');
+    }
+
+    // Сопоставление категорий с полями базы данных
+    const updateFields = {
+      'Описание': 'opisaniye',
+      'Название': 'name',
+      'Цена': 'price',
+      'Фото': 'img',
+      'Стоп': 'status',
+      'Наличие': 'status'
+    };
+
+    // Проверка, существует ли категория
+    if (!updateFields[kateg]) {
+      return res.status(400).send('Invalid category');
+    }
+
+    // Подготовка объекта обновления
+    const updateData = {};
+
+    // Устанавливаем статус в зависимости от категории
+    if (kateg === 'Стоп') {
+      updateData[updateFields[kateg]] = 2; // Устанавливаем статус 2 для 'Стоп'
+    } else if (kateg === 'Наличие') {
+      updateData[updateFields[kateg]] = 1; // Устанавливаем статус 1 для 'Наличие'
+    } else {
+      updateData[updateFields[kateg]] = info; // Устанавливаем другие поля
+    }
+
+    // Обновление записи в базе данных
+    const basket = await Item.update(updateData, {
+      where: { id: itemId }
+    });
+
+    // Проверка, было ли обновление успешным
+    if (basket[0] === 0) {
+      return res.status(404).send('Product not found');
+    }
+
+    return res.status(206).send('Basket updated successfully');
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+}
+
+
+
+async getItem_info (req, res) {
+  const {id} =  req.body
+ 
+  
+  const device = await Item.findOne({
+
+    where: {
+      id:id
+    }
+
+  });
+  return res.json(device)
+} catch (e) {
+  next(ApiError.badRequest(e.message))
+}
+
+
+async updateSmena (req, res) {
+  const {id,znach} =  req.body
+ 
+  
+  const basket =  await User.update(
+  {
+    adress: znach,
+  },
+  {
+      where: {id:id} 
+  }
+  
+  )
+
+  if (basket) {
+      return res.status(206).send('Basket updated successfully ');
+    }throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+}
 async updateUser (req, res) {
   const {id,name,phone,birthday,email} =  req.body
  
@@ -374,6 +661,22 @@ async updateUser (req, res) {
     return res.status(500).send(error.message);
 }
 async getUser (req, res) {
+  const {id} =  req.body
+ 
+  
+  const device = await User.findOne({
+
+    where: {
+      id:id
+    }
+
+  });
+  console.log(device.dataValues.Role)
+  return res.json(device.dataValues.Role)
+} catch (e) {
+  next(ApiError.badRequest(e.message))
+}
+async getUser1 (req, res) {
   const {id} =  req.body
  
   
@@ -432,7 +735,70 @@ async deleteBasketDevice (req, res) {
   }
 };
 
-  
+async delcategoria (req, res) {
+  try {
+    const { id } = req.body;
+    const deletedProduct1 = await Categoria.destroy({
+      where: { id: id },
+    });
+    if (deletedProduct1) {
+      return res.status(204).send('Product deleted successfully ');
+    }
+    throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+};
+
+async deleteItem (req, res) {
+  try {
+    const { id } = req.body;
+    const deletedProduct1 = await Item.destroy({
+      where: { id: id },
+    });
+    const deletedProduct2 = await Basket_Item.destroy({
+      where: { ItemsId: id },
+    });
+
+    if (deletedProduct1) {
+      return res.status(204).send('Product deleted successfully ');
+    }
+    throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+};
+
+
+async createIt (req, res) {
+  try {
+    
+    const { name,opisaniye,CategoriumId,price } = req.body;
+    const {img} = req.files
+    let fileName = uuid.v4() + ".jpg"
+    img.mv(path.resolve(__dirname, '..', 'static', fileName))
+
+    const images = `https://nso-construct.ru:8443/${fileName}`
+
+
+    const deletedProduct1 = await Item.create({
+      name:name,
+      opisaniye:opisaniye,
+      CategoriumId:CategoriumId,
+      img:images,
+      price:price
+    });
+
+
+    if (deletedProduct1) {
+      return res.status(204).send('Product deleted successfully ');
+    }
+    throw new Error('Product not found');
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+};
+
 //   async createSessia(req, res, next) {
 //     const {name,kto,professia_name,osebe,opit,zarplata,UserId,tags} = req.body
 //     const sessia = await Sessia.create({name,kto,professia_name,osebe,opit,zarplata,UserId,tags})
